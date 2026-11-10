@@ -1,0 +1,62 @@
+# Flujo de integración y despliegue continuos (CI/CD).
+#
+# Integración continua (CI): cada cambio que llega al repositorio se verifica
+# automáticamente, sin depender de que alguien recuerde correr las pruebas.
+# Despliegue continuo (CD): si la verificación pasa, el cambio se publica.
+# En este proyecto el despliegue es simulado: solo imprime un mensaje.
+#
+# En GitHub Actions este archivo es un "workflow". Contiene "jobs" (trabajos que
+# corren en una máquina virtual llamada runner) y cada job contiene "steps" (pasos).
+
+name: CI/CD
+
+# Eventos que disparan el workflow: un push a main o un pull request hacia main.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # CI: pruebas unitarias
+  # ---------------------------------------------------------------------------
+  pruebas-unitarias:
+    name: Pruebas unitarias
+    runs-on: ubuntu-latest
+    steps:
+      # Descarga el código del repositorio en el runner.
+      - name: Descargar el código
+        uses: actions/checkout@v6
+
+      # Instala uv. Desde la versión 8 la acción solo publica versiones exactas
+      # (no existe @v8), una medida contra ataques a la cadena de suministro.
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v8.1.0
+        with:
+          enable-cache: true
+
+      # Crea el entorno virtual e instala exactamente las versiones de uv.lock.
+      # --locked hace fallar el paso si uv.lock no coincide con pyproject.toml.
+      - name: Instalar dependencias
+        run: uv sync --locked
+
+      - name: Ejecutar pruebas unitarias
+        run: uv run pytest tests/unit -v
+
+  # ---------------------------------------------------------------------------
+  # CD: despliegue simulado
+  # ---------------------------------------------------------------------------
+  despliegue:
+    name: Despliegue (simulado)
+    # needs: el despliegue solo corre si todos los jobs listados terminaron bien.
+    # Si una prueba falla, este job no se ejecuta y nada llega a producción.
+    needs: [pruebas-unitarias]
+    # Solo se despliega lo que entra a main, nunca desde un pull request.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Desplegar
+        run: |
+          echo "Versión: ${{ github.sha }}"
+          echo "Desplegado"

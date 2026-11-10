@@ -1,0 +1,15 @@
+# Entorno virtual y archivos generados por Python
+.venv/
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Caché y reportes de las herramientas de prueba y análisis
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+coverage.xml

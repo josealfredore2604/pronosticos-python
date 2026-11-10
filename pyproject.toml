@@ -1,0 +1,49 @@
+[project]
+name = "pronosticos"
+version = "1.0.0"
+description = "Cálculo de pronósticos de demanda y de sus medidas de error para el curso de Pruebas de Software."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+pronosticos = "pronosticos.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.11.7,<0.12.0"]
+build-backend = "uv_build"
+
+# Configuración de pytest: dónde buscar las pruebas y con qué opciones correrlas.
+# --import-mode=importlib permite tener archivos de prueba con el mismo nombre
+# en carpetas distintas (por ejemplo tests/unit/test_alertas.py y tests/bdd/test_alertas.py).
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --import-mode=importlib"
+
+# Configuración de Ruff, el analizador estático y formateador de Python.
+# E y F son los errores de estilo (pycodestyle) y los defectos probables (Pyflakes);
+# I ordena las importaciones; C90 mide la complejidad ciclomática (McCabe).
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "C90"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 5
+
+# Configuración de cobertura: qué código se mide.
+# branch = true mide también la cobertura de ramas (cada if verdadero y falso).
+# cli.py se excluye porque solo imprime una demostración; no contiene reglas de negocio.
+[tool.coverage.run]
+source = ["src/pronosticos"]
+branch = true
+omit = ["src/pronosticos/cli.py"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "pytest-bdd>=9.0.1",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.4",
+]
