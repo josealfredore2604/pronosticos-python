@@ -1,4 +1,4 @@
-# Entorno virtual y archivos generados por Python
+# Entorno virtual y archivos que crea Python
 .venv/
 __pycache__/
 *.py[oc]

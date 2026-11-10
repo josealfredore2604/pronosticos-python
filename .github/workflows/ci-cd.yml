@@ -45,13 +45,40 @@ jobs:
         run: uv run pytest tests/unit -v
 
   # ---------------------------------------------------------------------------
+  # CI: pruebas BDD
+  # ---------------------------------------------------------------------------
+  # Ejecuta los escenarios escritos en Gherkin (tests/bdd/features). Son pruebas
+  # funcionales: verifican el comportamiento contra el requisito, con frases que
+  # Producción puede leer. Corre en su propia máquina, en paralelo con las pruebas
+  # unitarias: un job no ve lo que instaló otro, por eso repite la preparación.
+  pruebas-bdd:
+    name: Pruebas BDD
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v6
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Instalar dependencias
+        run: uv sync --locked
+
+      # pytest-bdd convierte cada escenario, y cada fila de Ejemplos, en una prueba.
+      # -v muestra el nombre de cada escenario en el registro del job.
+      - name: Ejecutar escenarios BDD
+        run: uv run pytest tests/bdd -v
+
+  # ---------------------------------------------------------------------------
   # CD: despliegue simulado
   # ---------------------------------------------------------------------------
   despliegue:
     name: Despliegue (simulado)
     # needs: el despliegue solo corre si todos los jobs listados terminaron bien.
     # Si una prueba falla, este job no se ejecuta y nada llega a producción.
-    needs: [pruebas-unitarias]
+    needs: [pruebas-unitarias, pruebas-bdd]
     # Solo se despliega lo que entra a main, nunca desde un pull request.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
